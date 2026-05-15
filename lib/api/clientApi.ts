@@ -49,13 +49,13 @@ export const checkSession = async (): Promise<User | null> => {
 };
 
 export const getMe = async (): Promise<User> => {
-  const response = await api.get<User>("/users");
+  const response = await api.get<User>("/users/me");
 
   return response.data;
 };
 
 export const updateMe = async (data: UpdateUserData): Promise<User> => {
-  const response = await api.patch<User>("/users", data);
+  const response = await api.patch<User>("/users/me", data);
 
   return response.data;
 };
