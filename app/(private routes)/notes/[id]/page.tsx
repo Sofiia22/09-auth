@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { fetchNoteById } from "@/lib/api/notes";
+import { fetchNoteById } from "@/lib/api/clientApi";
 
 const SITE_URL = "https://08-zustand-ten-sigma.vercel.app";
 

@@ -1,4 +1,4 @@
-import { fetchNoteById } from "@/lib/api/notes";
+import { fetchNoteById } from "@/lib/api/clientApi";
 
 export default async function NotePreview({ id }: { id: string }) {
   const note = await fetchNoteById(id);
