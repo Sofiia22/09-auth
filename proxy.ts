@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { parse } from "cookie";
 
 import { checkSession } from "./lib/api/serverApi";
 
@@ -9,14 +10,41 @@ const applySetCookie = (
   response: NextResponse,
   setCookie?: string | string[],
 ) => {
-  if (!setCookie) {
-    return;
-  }
+  if (!setCookie) return;
 
   const cookieHeaders = Array.isArray(setCookie) ? setCookie : [setCookie];
 
-  cookieHeaders.forEach((cookie) => {
-    response.headers.append("Set-Cookie", cookie);
+  cookieHeaders.forEach((cookieHeader) => {
+    const parsed = parse(cookieHeader);
+
+    const options = {
+      expires: parsed.Expires ? new Date(parsed.Expires) : undefined,
+      path: parsed.Path || "/",
+      maxAge: parsed["Max-Age"] ? Number(parsed["Max-Age"]) : undefined,
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax" as const,
+    };
+
+    if (parsed.accessToken) {
+      response.cookies.set("accessToken", parsed.accessToken, options);
+    }
+
+    if (parsed.refreshToken) {
+      response.cookies.set("refreshToken", parsed.refreshToken, options);
+    }
+  });
+};
+
+const clearAuthCookies = (response: NextResponse) => {
+  response.cookies.set("accessToken", "", {
+    path: "/",
+    expires: new Date(0),
+  });
+
+  response.cookies.set("refreshToken", "", {
+    path: "/",
+    expires: new Date(0),
   });
 };
 
@@ -58,15 +86,18 @@ export async function proxy(request: NextRequest) {
         ? NextResponse.redirect(new URL("/sign-in", request.url))
         : NextResponse.next();
 
-      response.cookies.delete("accessToken");
-      response.cookies.delete("refreshToken");
+      clearAuthCookies(response);
 
       return response;
     }
   }
 
   if (isPrivateRoute) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+    const response = NextResponse.redirect(new URL("/sign-in", request.url));
+
+    clearAuthCookies(response);
+
+    return response;
   }
 
   return NextResponse.next();
