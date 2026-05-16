@@ -15,3 +15,14 @@ export const getMe = async (): Promise<User> => {
 
   return response.data;
 };
+export const checkSession = async () => {
+  const cookieStore = await cookies();
+
+  const response = await api.get("/auth/session", {
+    headers: {
+      Cookie: cookieStore.toString(),
+    },
+  });
+
+  return response;
+};
