@@ -1,43 +1,45 @@
 import type { Metadata } from "next";
-import { fetchNoteById } from "@/lib/api/clientApi";
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
 
-const SITE_URL = "https://08-zustand-ten-sigma.vercel.app";
+import { fetchNoteById } from "@/lib/api/serverApi";
+import NoteDetailsClient from "./NoteDetails.client";
 
-type Props = {
-  params: Promise<{
-    id: string;
-  }>;
+type NoteDetailsPageProps = {
+  params: Promise<{ id: string }>;
 };
 
-export default async function NotePage({ params }: Props) {
+export async function generateMetadata({
+  params,
+}: NoteDetailsPageProps): Promise<Metadata> {
   const { id } = await params;
-  const note = await fetchNoteById(id);
 
-  return (
-    <div>
-      <h1>{note.title}</h1>
-      <p>{note.content}</p>
-      <p>{note.tag}</p>
-    </div>
-  );
-}
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { id } = await params;
   const note = await fetchNoteById(id);
 
   return {
-    title: note.title,
+    title: `${note.title} | NoteHub`,
     description: note.content,
-    openGraph: {
-      title: note.title,
-      description: note.content,
-      url: `${SITE_URL}/notes/${id}`,
-      images: [
-        {
-          url: "https://ac.goit.global/fullstack/react/notehub-og-meta.jpg",
-        },
-      ],
-    },
   };
+}
+
+export default async function NoteDetailsPage({
+  params,
+}: NoteDetailsPageProps) {
+  const { id } = await params;
+
+  const queryClient = new QueryClient();
+
+  await queryClient.prefetchQuery({
+    queryKey: ["note", id],
+    queryFn: () => fetchNoteById(id),
+  });
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <NoteDetailsClient id={id} />
+    </HydrationBoundary>
+  );
 }

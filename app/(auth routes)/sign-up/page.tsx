@@ -3,12 +3,12 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { login } from "@/lib/api/clientApi";
+import { register } from "@/lib/api/clientApi";
 import { useAuthStore } from "@/lib/store/authStore";
 
 import css from "./SignUpPage.module.css";
 
-export default function SignInPage() {
+export default function SignUpPage() {
   const router = useRouter();
 
   const [error, setError] = useState("");
@@ -28,7 +28,7 @@ export default function SignInPage() {
       .value;
 
     try {
-      const response = await login({
+      const response = await register({
         email,
         password,
       });
@@ -37,14 +37,14 @@ export default function SignInPage() {
 
       router.push("/profile");
     } catch {
-      setError("Login failed");
+      setError("Registration failed");
     }
   };
 
   return (
     <main className={css.container}>
       <form className={css.form} onSubmit={handleSubmit}>
-        <h1 className={css.title}>Sign in</h1>
+        <h1 className={css.title}>Sign up</h1>
 
         <div className={css.field}>
           <label htmlFor="email">Email</label>
@@ -59,7 +59,7 @@ export default function SignInPage() {
         </div>
 
         <button className={css.button} type="submit">
-          Log in
+          Register
         </button>
 
         {error && <p className={css.error}>{error}</p>}

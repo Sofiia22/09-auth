@@ -5,12 +5,15 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { getMe, updateMe } from "@/lib/api/clientApi";
+import { useAuthStore } from "@/lib/store/authStore";
 import { User } from "@/types/user";
 
 import css from "./EditProfilePage.module.css";
 
 export default function EditProfilePage() {
   const router = useRouter();
+
+  const setAuthUser = useAuthStore((state) => state.setUser);
 
   const [user, setUser] = useState<User | null>(null);
   const [username, setUsername] = useState("");
@@ -29,7 +32,9 @@ export default function EditProfilePage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    await updateMe({ username });
+    const updatedUser = await updateMe({ username });
+
+    setAuthUser(updatedUser);
 
     router.push("/profile");
   };
